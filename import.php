@@ -84,7 +84,7 @@ if ($stage === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect(new moodle_url('/blocks/calendar_csv_importer/import.php',
             ['mode' => $mode, 'courseid' => $courseid]));
     }
-    $rows       = unserialize($_SESSION[$sessionkey]['rows']);
+    $rows       = json_decode($_SESSION[$sessionkey]['rows'], false);
     $descformat = $_SESSION[$sessionkey]['descformat'];
     unset($_SESSION[$sessionkey]);
 
@@ -92,6 +92,7 @@ if ($stage === 'execute' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // POSTキーは delete_rownum_eventid 形式
     $deletemap = [];
     foreach ($_POST as $k => $v) {
+        $k = clean_param($k, PARAM_ALPHANUMEXT);
         if (strpos($k, 'delete_') === 0) {
             $inner = substr($k, strlen('delete_'));
             $deletemap[$inner] = 1;
@@ -136,7 +137,7 @@ if ($stage === 'preview' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // ファイルアップロード確認
-    if (empty($_FILES['csvfile']['tmp_name'])) {
+    if (empty($_FILES['csvfile']['tmp_name']) || !is_uploaded_file($_FILES['csvfile']['tmp_name'])) {
         redirect(new moodle_url('/blocks/calendar_csv_importer/import.php',
             ['mode' => $mode, 'courseid' => $courseid]),
             get_string('error_invalidcsv', 'block_calendar_csv_importer'));
@@ -192,7 +193,7 @@ if ($stage === 'preview' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // セッションに保存（execute時に復元）
     $sessionkey = 'ccsvimport_rows_' . sesskey();
     $_SESSION[$sessionkey] = [
-        'rows'       => serialize($rows),
+        'rows'       => json_encode($rows),
         'descformat' => $descformat,
     ];
 
@@ -433,4 +434,14 @@ function ccsvimport_render_upload_form(string $mode, int $courseid, bool $adminm
     );
 
     echo html_writer::end_tag('form');
+
+    // テンプレートダウンロードリンク（フォームの外）
+    $templateurl = new moodle_url('/blocks/calendar_csv_importer/download_template.php', [
+        'mode'     => $mode,
+        'courseid' => $courseid,
+    ]);
+    echo html_writer::tag('p',
+        html_writer::link($templateurl, get_string('downloadtemplate', 'block_calendar_csv_importer'),
+            ['class' => 'text-muted small'])
+    );
 }

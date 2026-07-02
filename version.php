@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026061907;
+$plugin->version   = 2026061911;
 $plugin->requires  = 2022041900; // Moodle 4.0
 $plugin->component = 'block_calendar_csv_importer';
 $plugin->maturity  = MATURITY_ALPHA;

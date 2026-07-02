@@ -212,18 +212,49 @@ function ccsvimport_parse_csv(string $filepath, bool $adminmode, int $fixedcours
 }
 
 /**
- * 'YYYY-MM-DD HH:MM' 文字列をUnixタイムスタンプに変換する。
+ * 日時文字列をUnixタイムスタンプに変換する。
+ *
+ * 対応フォーマット:
+ *   YYYY-MM-DD HH:MM  （例: 2026-09-01 09:00）
+ *   YYYY/MM/DD HH:MM  （例: 2026/09/01 09:00）
+ *   YYYY/M/D H:MM     （例: 2026/9/1 9:00 ← Excelのスラッシュ区切り）
+ *   YYYY-MM-DD        （例: 2026-09-01 ← 時刻省略時は 00:00 として扱う）
+ *   YYYY/MM/DD        （例: 2026/09/01 ← 時刻省略時は 00:00 として扱う）
  *
  * @param string $str
  * @return int|false
  */
 function ccsvimport_parse_datetime(string $str) {
     $str = trim($str);
-    if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $str)) {
+    if ($str === '') {
         return false;
     }
-    $ts = strtotime($str);
-    return ($ts !== false && $ts > 0) ? $ts : false;
+
+    // スラッシュ区切りをハイフンに統一し、月日を0埋め
+    // 例: 2026/9/1 9:00 → 2026-09-01 9:00
+    $str = preg_replace_callback(
+        '/^(\d{4})\/(\d{1,2})\/(\d{1,2})(.*)$/',
+        function($m) {
+            return sprintf('%04d-%02d-%02d%s', $m[1], $m[2], $m[3], $m[4]);
+        },
+        $str
+    );
+
+    // 時刻なし（日付のみ）の場合は 00:00 を補完
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $str)) {
+        $str .= ' 00:00';
+    }
+
+    // DateTime::createFromFormat で厳密にパース（strtotime より安全）
+    $dt = DateTime::createFromFormat('Y-m-d H:i', $str);
+    if (!$dt) {
+        return false;
+    }
+    $errors = DateTime::getLastErrors();
+    if ($errors['warning_count'] > 0 || $errors['error_count'] > 0) {
+        return false;
+    }
+    return $dt->getTimestamp();
 }
 
 /**

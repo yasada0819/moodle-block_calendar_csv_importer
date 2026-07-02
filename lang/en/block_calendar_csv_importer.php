@@ -84,3 +84,4 @@ $string['error_invalidcourseid']             = 'Row {$a->row}: Invalid or inacce
 $string['error_nocapability']                = 'You do not have permission to import events to course {$a}.';
 $string['error_noadminmode']                 = 'You do not have permission to import to multiple courses.';
 $string['error_missingcolumn_course']        = 'Either "courseid" or "courseidnumber" column is required in admin mode.';
+$string['downloadtemplate']                  = 'Download CSV template';

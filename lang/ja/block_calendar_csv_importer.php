@@ -61,3 +61,4 @@ $string['error_invalidcourseid']             = '{$a->row} 行目：無効また�
 $string['error_nocapability']                = 'コース {$a} へのイベント登録権限がありません。';
 $string['error_noadminmode']                 = '複数コースへのインポート権限がありません。';
 $string['error_missingcolumn_course']        = '管理者モードでは "courseid" または "courseidnumber" 列のどちらかが必要です。';
+$string['downloadtemplate']                  = 'CSVテンプレートをダウンロード';
